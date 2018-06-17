@@ -1,0 +1,27 @@
+{
+  "name": "cmdtodo-server",
+  "version": "1.0.0",
+  "author": "Bill Yu",
+  "description": "Backend server for a command line todo application",
+  "scripts": {
+    "start": "cross-env NODE_ENV=development nodemon --exec babel-node src/server.js",
+    "build": "babel -d ./build ./src -s"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "~4.16.0",
+    "morgan": "~1.9.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "cross-env": "^5.2.0",
+    "eslint": "^4.19.1",
+    "eslint-config-google": "^0.9.1",
+    "nodemon": "^1.17.5"
+  }
+}
