@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const todos = [];
+let id = 0;
 
 router.param('id', (req, res, next, idParam) => {
   if (isNaN(idParam)) {
@@ -9,24 +10,30 @@ router.param('id', (req, res, next, idParam) => {
   }
 
   const id = Number.parseInt(idParam, 10);
-  if (id < 0 || id >= todos.length) {
-    return res.status(422).send('id out of range');
+  if (id < 0) {
+    return res.status(422).send('invalid id');
   }
 
-  req.id = id;
+  const todo = todos.find(item => item.id === id);
+  if (!todo) {
+    return res.status(422).send('invalid id');
+  }
+
+  req.todo = todo;
   next();
 });
 
 router.get('/', (req, res, next) => {
-  res.json(todos);
+  res.json({ todos });
 });
 
 router.get('/:id', (req, res, next) => {
-  res.json(todos[req.id]);
+  res.json({ todo: req.todo });
 });
 
 router.post('/', (req, res, next) => {
   todos.push({
+    id: id++,
     done: false,
     content: req.body.content,
   });
@@ -34,7 +41,7 @@ router.post('/', (req, res, next) => {
 });
 
 router.post('/do/:id', (req, res, next) => {
-  todos[req.id].done = true;
+  req.todo.done = true;
   res.sendStatus(200);
 });
 
