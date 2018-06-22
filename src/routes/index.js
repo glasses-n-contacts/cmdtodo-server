@@ -4,21 +4,15 @@ const router = express.Router();
 const todos = [];
 let id = 0;
 
+function getTodoFromId(idParam, res) {
+  return todos.find(item => item.id == idParam);
+}
+
 router.param('id', (req, res, next, idParam) => {
-  if (isNaN(idParam)) {
-    return res.sendStatus(422);
-  }
-
-  const id = Number.parseInt(idParam, 10);
-  if (id < 0) {
-    return res.status(422).send('invalid id');
-  }
-
-  const todo = todos.find(item => item.id === id);
+  const todo = getTodoFromId(idParam, res);
   if (!todo) {
     return res.status(422).send('invalid id');
   }
-
   req.todo = todo;
   next();
 });
@@ -32,6 +26,10 @@ router.get('/:id', (req, res, next) => {
 });
 
 router.post('/', (req, res, next) => {
+  if (!req.body.content) {
+    return res.status(422).send('need content for new todo');
+  }
+
   todos.push({
     id: id++,
     done: false,
@@ -40,8 +38,15 @@ router.post('/', (req, res, next) => {
   res.sendStatus(200);
 });
 
-router.post('/do/:id', (req, res, next) => {
-  req.todo.done = true;
+router.post('/do', (req, res, next) => {
+  if (!req.body.ids || req.body.ids.constructor !== Array) {
+    return res.status(422).send('need id(s) of todo(s) to mark as done');
+  }
+
+  req.body.ids.forEach(id => {
+    const todo = getTodoFromId(id, res);
+    if (todo) todo.done = true;
+  });
   res.sendStatus(200);
 });
 
