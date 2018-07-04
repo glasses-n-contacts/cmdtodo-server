@@ -1,53 +1,52 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../auth/auth');
+const mongoose = require('mongoose');
+const Todo = mongoose.model('Todo');
 
-const todos = [];
-let id = 0;
-
-function getTodoFromId(idParam, res) {
-  return todos.find(item => item.id == idParam);
-}
-
-router.param('id', (req, res, next, idParam) => {
-  const todo = getTodoFromId(idParam, res);
-  if (!todo) {
-    return res.status(422).send('invalid id');
-  }
-  req.todo = todo;
-  next();
+router.get('/', auth, (req, res, next) => {
+  Todo.find({ owner: req.user }).exec()
+    .then(todos => {
+      res.json({ todos });
+    })
+    .catch(next);
 });
 
-router.get('/', (req, res, next) => {
-  res.json({ todos });
+router.get('/:id', auth, (req, res, next) => {
+  Todo.findById(req.params.id).exec()
+    .then(todo => {
+      if (!todo || todo.owner.toString() !== req.payload._id.toString()) {
+        return res.status(422).send('invalid id');
+      }
+      res.json({ todo });
+    })
+    .catch(next);
 });
 
-router.get('/:id', (req, res, next) => {
-  res.json({ todo: req.todo });
-});
-
-router.post('/', (req, res, next) => {
-  if (!req.body.content) {
-    return res.status(422).send('need content for new todo');
-  }
-
-  todos.push({
-    id: id++,
-    done: false,
+router.post('/', auth, (req, res, next) => {
+  const todo = new Todo({
     content: req.body.content,
+    owner: req.user,
   });
-  res.sendStatus(200);
+  todo.save()
+    .then(() => res.sendStatus(200))
+    .catch(next);
 });
 
-router.post('/do', (req, res, next) => {
+router.post('/do', auth, (req, res, next) => {
   if (!req.body.ids || req.body.ids.constructor !== Array) {
     return res.status(422).send('need id(s) of todo(s) to mark as done');
   }
 
-  req.body.ids.forEach(id => {
-    const todo = getTodoFromId(id, res);
-    if (todo) todo.done = true;
-  });
-  res.sendStatus(200);
+  Todo.find({ _id: { '$in': req.body.ids }, owner: req.user }).exec()
+    .then(todos => {
+      return todos.map(todo => {
+        todo.done = true;
+        return todo.save();
+      });
+    })
+    .then(() => res.sendStatus(200))
+    .catch(next);
 });
 
 module.exports = router;
