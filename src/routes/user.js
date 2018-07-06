@@ -42,6 +42,7 @@ router.post('/login', (req, res, next) => {
       token = user.generateJwt();
       res.status(200);
       res.json({
+        username: user.username,
         token,
       });
     } else {

@@ -7,7 +7,7 @@ const Todo = mongoose.model('Todo');
 router.get('/', auth, (req, res, next) => {
   Todo.find({ owner: req.user }).exec()
     .then(todos => {
-      res.json({ todos });
+      res.json({ todos: todos.map(todo => todo.toJson()) });
     })
     .catch(next);
 });
@@ -18,7 +18,7 @@ router.get('/:id', auth, (req, res, next) => {
       if (!todo || todo.owner.toString() !== req.payload._id.toString()) {
         return res.status(422).send('invalid id');
       }
-      res.json({ todo });
+      res.json({ todo: todo.toJson() });
     })
     .catch(next);
 });

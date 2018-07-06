@@ -15,4 +15,12 @@ const TodoSchema = new mongoose.Schema({
   },
 });
 
+TodoSchema.methods.toJson = function() {
+  return {
+    id: this._id.toString(),
+    content: this.content,
+    done: this.done,
+  };
+};
+
 mongoose.model('Todo', TodoSchema);
